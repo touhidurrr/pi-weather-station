@@ -4,6 +4,7 @@ import { Elysia } from "elysia";
 import { prisma } from "./prisma";
 
 const app = new Elysia()
+  .get("/readings", () => prisma.temperatureReading.findMany())
   .use(
     cron({
       name: "takereadings",
