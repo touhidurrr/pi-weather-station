@@ -8,8 +8,9 @@ const { PORT: port = 3000, UNIX_SOCKET_PATH: unix } = process.env;
 
 if (unix) {
   const file = Bun.file(unix);
-  const exists = await file.exists();
-  if (exists) await file.unlink();
+  if (await file.exists()) {
+    await file.unlink();
+  }
 }
 
 new Elysia()
