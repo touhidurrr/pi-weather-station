@@ -2,9 +2,15 @@ import { cron } from "@elysiajs/cron";
 import { staticPlugin } from "@elysiajs/static";
 import { Elysia } from "elysia";
 import { prisma } from "./prisma";
-import type { server } from "typescript";
+import { chmod } from "node:fs/promises";
 
 const { PORT: port = 3000, UNIX_SOCKET_PATH: unix } = process.env;
+
+if (unix) {
+  const file = Bun.file(unix);
+  const exists = await file.exists();
+  if (exists) await file.unlink();
+}
 
 new Elysia()
   .get("/readings", () => prisma.temperatureReading.findMany())
@@ -27,6 +33,7 @@ new Elysia()
     }),
   )
   .use(staticPlugin({ prefix: "/", assets: "site", alwaysStatic: true }))
-  .listen(unix ? { unix } : port, (server) =>
-    console.log(`Server listening to ${server.url}`),
-  );
+  .listen(unix ? { unix } : port, (server) => {
+    if (unix) chmod(unix, 0o666);
+    console.log(`Server listening to ${server.url}`);
+  });
