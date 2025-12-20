@@ -2,8 +2,11 @@ import { cron } from "@elysiajs/cron";
 import { staticPlugin } from "@elysiajs/static";
 import { Elysia } from "elysia";
 import { prisma } from "./prisma";
+import type { server } from "typescript";
 
-const app = new Elysia()
+const { PORT: port = 3000, UNIX_SOCKET_PATH: unix } = process.env;
+
+new Elysia()
   .get("/readings", () => prisma.temperatureReading.findMany())
   .use(
     cron({
@@ -24,4 +27,6 @@ const app = new Elysia()
     }),
   )
   .use(staticPlugin({ prefix: "/", assets: "site", alwaysStatic: true }))
-  .listen(3000, () => console.log("Server running on port 3000"));
+  .listen(unix ? { unix } : port, (server) =>
+    console.log(`Server listening to ${server.url}`),
+  );
